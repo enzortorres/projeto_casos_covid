@@ -1,0 +1,12 @@
+# Normaliza finais de linha de texto no repositório
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Binários
+*.parquet binary
+*.gz binary
+*.png binary
+
+# Estatísticas de linguagem do GitHub
+docs/assets/*.html linguist-generated
+*.ipynb linguist-documentation

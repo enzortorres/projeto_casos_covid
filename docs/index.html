@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Artigo acadêmico: análise exploratória dos casos e óbitos de COVID-19 no Brasil (2020–2022) com Python, a partir dos boletins das Secretarias Estaduais de Saúde consolidados pelo Brasil.IO.">
+  <meta name="author" content="Enzo Ribas Torres">
+  <meta name="keywords" content="COVID-19, Epidemiologia Descritiva, Análise Exploratória de Dados, Python, Visualização de Dados, Princípios FAIR">
+  <title>COVID-19 no Brasil (2020–2022)</title>
+
+  <!-- Plotly é carregado dentro de cada figura interativa (docs/assets/*.html), incorporada por iframe. -->
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --text: #1f2937;
+      --text-muted: #4b5563;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --font-serif: "Merriweather", Georgia, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: var(--text);
+      background-color: var(--bg);
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--surface);
+      padding: 3.5rem 4rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    /* Cabeçalho Acadêmico */
+    header { border-bottom: 2px solid var(--border); padding-bottom: 2rem; margin-bottom: 2.5rem; }
+
+    h1.paper-title {
+      font-family: var(--font-sans);
+      font-size: 2.1rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--primary);
+      margin-bottom: 1.2rem;
+      text-wrap: balance;
+    }
+
+    .meta-block { font-family: var(--font-sans); font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+    .authors { font-weight: 600; color: var(--text); }
+    .affiliations { font-style: italic; }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+
+    .repo-badge, .badge {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-decoration: none;
+      color: var(--primary);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.2s ease;
+    }
+    .badge { color: var(--text-muted); font-weight: 400; }
+    .badge b { color: var(--text); font-weight: 600; }
+    .repo-badge:hover { background: #e2e8f0; }
+
+    /* Abstract / Resumo */
+    .abstract-box {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      border-left: 4px solid var(--primary-light);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2.5rem;
+      border-radius: 0 4px 4px 0;
+    }
+    .abstract-box h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; color: var(--primary); }
+    .abstract-box p { font-size: 0.95rem; line-height: 1.6; }
+    .keywords { margin-top: 0.8rem; font-size: 0.9rem; color: var(--text-muted); }
+
+    /* Navegação / Sumário */
+    nav.toc {
+      font-family: var(--font-sans);
+      background: #fdfefe;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.2rem 1.8rem;
+      margin-bottom: 2.5rem;
+    }
+    nav.toc h4 { font-size: 1rem; color: var(--primary); margin-bottom: 0.6rem; }
+    nav.toc ol { padding-left: 1.2rem; }
+    nav.toc li { margin: 0.3rem 0; }
+    nav.toc a { color: var(--text-muted); text-decoration: none; font-size: 0.92rem; }
+    nav.toc a:hover { color: var(--primary-light); text-decoration: underline; }
+
+    /* Seções e Tipografia */
+    section { margin-bottom: 2.5rem; }
+
+    h2 {
+      font-family: var(--font-sans);
+      font-size: 1.45rem;
+      font-weight: 600;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.4rem;
+      margin-bottom: 1rem;
+      margin-top: 2rem;
+    }
+    h3.sub { font-family: var(--font-sans); font-size: 1.1rem; color: var(--text); margin: 1.6rem 0 0.6rem; }
+
+    p { margin-bottom: 1.2rem; text-align: justify; hyphens: auto; }
+    ul.body-list, ol.body-list { margin: 0 0 1.2rem 1.4rem; }
+    ul.body-list li, ol.body-list li { margin-bottom: 0.4rem; }
+
+    .rq {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.2rem;
+      background: #fdfefe;
+    }
+    .rq p { margin: 0.3rem 0; text-align: left; }
+
+    /* Figuras, Visualizações e Códigos */
+    figure { margin: 2rem 0; text-align: center; }
+
+    .chart-frame {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      display: block;
+    }
+
+    figcaption {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+    figcaption a { color: var(--primary); }
+
+    pre, code { font-family: Consolas, "Courier New", monospace; font-size: 0.9rem; background-color: var(--code-bg); }
+    code { padding: 0.2rem 0.4rem; border-radius: 3px; }
+    pre {
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 1.2rem;
+      border: 1px solid var(--border);
+      line-height: 1.5;
+      font-size: 0.82rem;
+    }
+    pre code { padding: 0; background: none; font-size: inherit; }
+
+    /* Tabelas */
+    .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.86rem; }
+    caption { caption-side: top; text-align: left; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { color: var(--primary); border-bottom: 2px solid var(--border); font-weight: 600; }
+    td { font-variant-numeric: tabular-nums; }
+
+    /* Destaques numéricos */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; margin: 1.5rem 0; }
+    .kpi { font-family: var(--font-sans); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 1rem; background: #fdfefe; }
+    .kpi .v { font-size: 1.45rem; font-weight: 700; color: var(--primary); line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .kpi .l { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.2rem; }
+
+    /* Callouts e FAIR box */
+    .fair-box {
+      font-family: var(--font-sans);
+      border: 1px solid #bfdbfe;
+      background-color: #eff6ff;
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-top: 2rem;
+    }
+    .fair-box h3 { font-size: 1rem; color: #1e40af; margin-bottom: 0.5rem; }
+    .fair-box ul { margin-left: 1.2rem; font-size: 0.92rem; color: #1e3a8a; }
+    .fair-box li { margin-bottom: 0.4rem; }
+    .fair-box pre { margin-top: 0.8rem; background: #fff; }
+
+    .note {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      border-left: 4px solid #f59e0b;
+      background: #fffbeb;
+      padding: 0.9rem 1.2rem;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 1.2rem;
+    }
+    .note p { margin: 0; text-align: left; }
+
+    /* Referências */
+    .references ol { padding-left: 1.2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .references li { margin-bottom: 0.6rem; overflow-wrap: anywhere; }
+
+    footer { font-family: var(--font-sans); font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 2rem; }
+    footer a { color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem 0.5rem; }
+      .container { padding: 1.5rem 1rem; }
+      h1.paper-title { font-size: 1.6rem; }
+      p { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1 class="paper-title">Três ondas, desigualdades territoriais e o efeito do porte municipal: análise exploratória dos casos e óbitos de COVID-19 no Brasil (2020–2022)</h1>
+
+      <div class="meta-block authors">Enzo Ribas Torres</div>
+
+      <div class="meta-block affiliations">
+        Bacharelado em Sistemas de Informação — [Nome da Instituição]<br>
+        Disciplina: Linguagem de Programação — Análise e Visualização de Dados com Python (6º Período) · Prof. Alexandre Neves Louzada · 2026
+      </div>
+
+      <div class="badges">
+        <a href="https://github.com/enzortorres/projeto_casos_covid" class="repo-badge" target="_blank" rel="noopener noreferrer">📦 Ver Repositório GitHub (Código e Dados)</a>
+        <span class="badge"><b>Dados</b> Brasil.IO · CC BY-SA 4.0</span>
+        <span class="badge"><b>Código</b> MIT</span>
+        <span class="badge"><b>Texto</b> CC BY 4.0</span>
+        <span class="badge"><b>Python</b> 3.12 · pandas 3.1</span>
+        <span class="badge"><b>FAIR</b> compliant</span>
+      </div>
+    </header>
+
+    <div class="abstract-box">
+      <h3>Resumo</h3>
+      <p>
+        Este artigo analisa os boletins epidemiológicos de COVID-19 das 27 Secretarias Estaduais de Saúde, consolidados pelo
+        projeto Brasil.IO, de fevereiro de 2020 a março de 2022: 3,85 milhões de registros diários de 5.570 municípios.
+        Um pipeline determinístico em Python (pandas) valida o esquema, sinaliza registros repetidos e correções retroativas
+        sem descartá-los, separa os dois níveis de granularidade do arquivo e gera tabelas analíticas em formatos abertos.
+        O período soma 29,8 milhões de casos e 659 mil óbitos notificados (311 óbitos por 100 mil habitantes). Três ondas se
+        distinguem. A segunda, associada à variante Gama, concentrou 68% dos óbitos, com pico de 3.112 óbitos diários em
+        abril de 2021. A terceira (Ômicron) teve 2,4 vezes mais casos no pico, mas letalidade aparente de 0,64%, contra 2,75%
+        na anterior. A mortalidade acumulada variou 2,8 vezes entre as UFs (de 153 a 421 por 100 mil). Incidência e
+        letalidade têm correlação negativa forte entre os estados (ρ = −0,74), sinal de que a letalidade medida depende da
+        capacidade de testagem. Entre os municípios, a mortalidade cresce com o porte populacional (mediana de 174 a 317 por
+        100 mil), puxada pela letalidade e não pela incidência. Os resultados mostram a importância de ler indicadores de
+        notificação junto com seus vieses de vigilância.
+      </p>
+      <div class="keywords">
+        <strong>Palavras-chave:</strong> COVID-19; Epidemiologia Descritiva; Análise Exploratória de Dados; Python; Visualização de Dados; Princípios FAIR.
+      </div>
+    </div>
+
+    <nav class="toc" aria-label="Sumário">
+      <h4>Sumário</h4>
+      <ol>
+        <li><a href="#intro">Introdução</a></li>
+        <li><a href="#metodologia">Metodologia e Pipeline de Dados</a></li>
+        <li><a href="#resultados">Resultados e Discussão</a></li>
+        <li><a href="#conclusao">Conclusão</a></li>
+        <li><a href="#fair">Disponibilidade dos Dados e Declaração FAIR</a></li>
+        <li><a href="#referencias">Referências</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1. Introdução -->
+    <section id="intro">
+      <h2>1. Introdução</h2>
+      <p>
+        A pandemia de COVID-19 foi a maior crise sanitária do Brasil em um século. Até o fim de março de 2022, as secretarias
+        estaduais haviam notificado mais de 659 mil óbitos. Durante a emergência, a falta de dados centralizados e estáveis
+        levou iniciativas da sociedade civil, como o Brasil.IO, a coletar e padronizar diariamente os boletins de cada estado.
+        O resultado é uma das bases abertas mais completas sobre a epidemia no país (BRASIL.IO, 2022).
+      </p>
+      <p>
+        Passada a fase aguda, esses dados permitem um olhar retrospectivo sobre <em>quando</em>, <em>onde</em> e
+        <em>em que tipo de município</em> a doença pesou mais. Esse diagnóstico ajuda no planejamento de futuras respostas a
+        emergências. Os dados de notificação, porém, carregam vieses conhecidos: subtestagem, atrasos e correções
+        retroativas. A análise precisa tratar e explicitar esses vieses. Este trabalho constrói um pipeline reprodutível para
+        fazer isso e responde a três perguntas de pesquisa:
+      </p>
+      <div class="rq">
+        <p><strong>RQ1.</strong> Como evoluíram os casos e óbitos diários no Brasil entre 2020 e 2022, quantas ondas se distinguem e como variou a letalidade aparente entre elas?</p>
+        <p><strong>RQ2.</strong> Como a incidência, a mortalidade e a letalidade acumuladas se distribuíram entre UFs e regiões, e essas medidas caminham juntas?</p>
+        <p><strong>RQ3.</strong> O porte populacional do município está associado à mortalidade e à letalidade acumuladas?</p>
+      </div>
+    </section>
+
+    <!-- 2. Metodologia -->
+    <section id="metodologia">
+      <h2>2. Metodologia e Pipeline de Dados</h2>
+
+      <h3 class="sub">2.1 Fonte e granularidade</h3>
+      <p>
+        A fonte primária é a tabela <code>caso_full</code> do Brasil.IO (licença CC BY-SA 4.0), distribuída como
+        <code>caso_full.csv.gz</code> (92 MB comprimido, UTF-8, separador vírgula). Cada linha representa um
+        <strong>local × dia</strong>, em dois níveis no mesmo arquivo: 3.833.529 linhas municipais
+        (<code>place_type = city</code>, incluindo a categoria <em>Importados/Indefinidos</em>) e 20.119 linhas estaduais
+        (<code>place_type = state</code>). O período vai de 25/02/2020 a 27/03/2022, quando o projeto encerrou a
+        atualização. As populações são as estimativas de 2020 do IBGE.
+      </p>
+
+      <h3 class="sub">2.2 Tratamento e decisões de limpeza</h3>
+      <p>O módulo <code>src/etl.py</code> executa as etapas abaixo. Nenhum registro bruto é apagado: cada problema de qualidade vira uma <em>flag</em> ou recebe um tratamento documentado.</p>
+      <ol class="body-list">
+        <li><strong>Leitura tipada:</strong> datas convertidas para <code>datetime64</code>; códigos IBGE e populações como inteiros anuláveis (<code>Int64</code>); UF e tipo de local como <code>category</code>, o que reduz o uso de memória.</li>
+        <li><strong>Validação de esquema e integridade:</strong> presença das 18 colunas, 27 UFs e zero chaves duplicadas (local × data). O resultado fica salvo em <code>relatorio_qualidade.json</code>.</li>
+        <li><strong>Dupla contagem:</strong> as séries por UF e Brasil usam <em>apenas</em> as linhas estaduais. Somar municípios e estados contaria o mesmo caso duas vezes.</li>
+        <li><strong>Registros repetidos</strong> (<code>is_repeated</code>, 1.015.645 linhas ou 26,4%): são dias sem boletim novo, com o acumulado repetido. Os casos se acumulam no dia seguinte, então todas as séries diárias usam <strong>média móvel de 7 dias (MM7)</strong>.</li>
+        <li><strong>Valores negativos</strong> (38.638 em casos e 6.261 em óbitos): são correções retroativas. Ficam mantidos, porque o acumulado depende deles, e são sinalizados em <code>e_correcao</code>. Só o mapa de calor recorta valores abaixo de zero, porque a escala sequencial não comporta negativos.</li>
+        <li><strong>Ausentes:</strong> os 13.646 registros <em>Importados/Indefinidos</em> não têm município nem população. Entram nos totais estaduais e saem da análise municipal. Letalidade com zero casos fica indefinida (<code>NaN</code>), sem imputação.</li>
+        <li><strong>Métricas derivadas:</strong> região, capital, faixa de porte (5 classes adaptadas do IBGE), incidência e mortalidade por 100 mil habitantes, letalidade aparente (óbitos ÷ casos) e letalidade com defasagem de 14 dias.</li>
+      </ol>
+
+      <div class="note">
+        <p><strong>Achado de qualidade:</strong> no último dia da série, a soma dos municípios fica abaixo do total estadual (em SP, 12,7 mil óbitos ou 7,6% a menos). A causa é que as séries <em>municipais</em> de várias UFs pararam de ser atualizadas entre ago/2021 e mar/2022, enquanto o total estadual continuou. Por isso a RQ3 compara todos os municípios numa <strong>data de corte comum (22/08/2021)</strong>, a mais recente em que todos ainda estavam atualizados.</p>
+      </div>
+
+      <pre><code># src/etl.py — trechos centrais do pipeline
+df = pd.read_csv(path, compression="gzip", encoding="utf-8", dtype=RAW_DTYPES,
+                 parse_dates=["date", "last_available_date"])
+
+# Séries estaduais com média móvel de 7 dias (absorve dias sem boletim)
+uf = df.loc[df["tipo_local"] == "state"].sort_values(["uf", "data"])
+uf["obitos_mm7"] = (uf.groupby("uf")["obitos_novos"]
+                      .transform(lambda s: s.rolling(7, min_periods=7).mean()))
+
+# Correções retroativas: mantidas e sinalizadas, nunca descartadas
+df["e_correcao"] = (df["casos_novos"] &lt; 0) | (df["obitos_novos"] &lt; 0)
+
+# Municípios comparados numa data de corte comum
+corte = ultimo["data_ultima_atualizacao"].min()          # 2021-08-22
+no_corte = (cidades[cidades["data"] &lt;= corte]
+            .sort_values("data").groupby("codigo_ibge").tail(1))
+
+# Persistência em formatos abertos
+tabela.to_parquet("data/processed/municipios.parquet", compression="zstd")
+tabela.to_csv("data/processed/municipios.csv.gz", compression="gzip")</code></pre>
+
+      <p>
+        O pipeline gera cinco tabelas analíticas: <code>brasil_diario</code> (762 linhas), <code>uf_diario</code>
+        (20.119), <code>uf_mensal</code> (676), <code>uf_resumo</code> (27) e <code>municipios</code> (5.570). Todas são
+        salvas em <strong>Apache Parquet</strong> (tipos preservados) e <strong>CSV comprimido</strong> (leitura universal) e
+        estão descritas em <code>data/data_dictionary.md</code>. As associações usam a correlação de postos de Spearman e o
+        teste de Kruskal-Wallis (SciPy), escolhidos por não exigirem normalidade de distribuições assimétricas.
+      </p>
+    </section>
+
+    <!-- 3. Resultados -->
+    <section id="resultados">
+      <h2>3. Resultados e Discussão</h2>
+
+      <div class="kpis">
+        <div class="kpi"><div class="v">29,85 mi</div><div class="l">casos confirmados notificados</div></div>
+        <div class="kpi"><div class="v">659.159</div><div class="l">óbitos notificados</div></div>
+        <div class="kpi"><div class="v">311,3</div><div class="l">óbitos por 100 mil habitantes</div></div>
+        <div class="kpi"><div class="v">2,21%</div><div class="l">letalidade aparente no período</div></div>
+      </div>
+
+      <h3 class="sub">3.1 RQ1 — Evolução temporal e ondas</h3>
+      <p>
+        A Figura 1 mostra três ondas bem distintas. A primeira (mar–out/2020) formou um platô longo, com cerca de 1.000
+        óbitos diários entre junho e agosto de 2020. A segunda, associada à disseminação da variante Gama a partir de Manaus,
+        foi a mais letal: atingiu <strong>3.112 óbitos diários (MM7) em 11/04/2021</strong> e concentrou 448 mil óbitos, ou
+        68% de todo o período. A terceira, provocada pela Ômicron, bateu o recorde de casos: <strong>189 mil por dia em
+        29/01/2022</strong>, 2,4 vezes o pico anterior. Ainda assim, o pico de óbitos dessa onda (894 por dia) ficou em menos
+        de um terço do pico da Gama.
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig1_evolucao_brasil.html" height="610" loading="lazy" title="Figura 1: casos e óbitos diários no Brasil, média móvel de 7 dias"></iframe>
+        <figcaption>Figura 1: Casos e óbitos novos no Brasil (média móvel de 7 dias), em painéis com escalas próprias. As faixas sombreadas delimitam as ondas. Passe o cursor para ver os valores diários. <a href="assets/fig1_evolucao_brasil.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Tabela 1: Síntese das ondas epidêmicas (Brasil, médias móveis de 7 dias).</caption>
+          <thead><tr><th>Onda</th><th>Casos</th><th>Óbitos</th><th>Letalidade</th><th>Pico de casos/dia</th><th>Pico de óbitos/dia</th></tr></thead>
+          <tbody>
+            <tr><td>1ª (mar–out/2020)</td><td>5.537.761</td><td>159.972</td><td>2,89%</td><td>47.515 (28/07/2020)</td><td>1.095 (25/07/2020)</td></tr>
+            <tr><td>2ª — Gama (nov/2020–out/2021)</td><td>16.276.862</td><td>448.109</td><td>2,75%</td><td>78.663 (22/06/2021)</td><td>3.112 (11/04/2021)</td></tr>
+            <tr><td>3ª — Ômicron (nov/2021–mar/2022)</td><td>8.035.115</td><td>51.078</td><td>0,64%</td><td>189.243 (29/01/2022)</td><td>894 (12/02/2022)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        A Figura 2 mostra a letalidade aparente mensal. Ela foi alta no início (7,1% em abril de 2020), quando só os casos
+        graves eram testados, e caiu para cerca de 1,6% no fim de 2020. Voltou a subir para <strong>4,3% em abril de
+        2021</strong>, no colapso hospitalar da segunda onda, e despencou para <strong>0,26% em janeiro de 2022</strong>. Essa
+        última queda combina três fatores: cobertura vacinal elevada, menor gravidade intrínseca da Ômicron e ampliação da
+        testagem, inclusive com autotestes. Mais da metade dos óbitos de 2022 (55%) aconteceu em fevereiro, o que mostra a
+        defasagem de duas a três semanas entre o pico de casos (fim de janeiro) e o de óbitos (12/02/2022).
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig2_letalidade_mensal.html" height="470" loading="lazy" title="Figura 2: letalidade aparente mensal"></iframe>
+        <figcaption>Figura 2: Letalidade aparente mensal (óbitos ÷ casos notificados no mês). Meses com menos de 10 mil casos (fev–mar/2020) foram omitidos. <a href="assets/fig2_letalidade_mensal.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <h3 class="sub">3.2 RQ2 — Desigualdades entre UFs e regiões</h3>
+      <p>
+        A Figura 3 mostra a epidemia como mosaico: cada célula é a mortalidade mensal de uma UF. A primeira onda atingiu
+        primeiro o Norte e o Nordeste (AM, PA, CE e PE, com pico em maio e junho de 2020) e só em julho o Centro-Oeste
+        (MT, 34 por 100 mil). Destaca-se o colapso do Amazonas em janeiro e fevereiro de 2021 (67 e 65 óbitos por 100 mil
+        no mês), que antecedeu em dois meses a explosão nacional de março e abril de 2021. Nesse pico, as UFs do Sul e do
+        Centro-Oeste andaram em sincronia, e Rondônia registrou o pior mês de toda a série (72 por 100 mil em março de
+        2021).
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig3_heatmap_uf_mes.html" height="690" loading="lazy" title="Figura 3: mapa de calor de óbitos mensais por UF"></iframe>
+        <figcaption>Figura 3: Óbitos mensais por 100 mil habitantes por UF, agrupadas por região (escala sequencial). <a href="assets/fig3_heatmap_uf_mes.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <p>
+        No acumulado (Figura 4), a mortalidade variou <strong>2,8 vezes</strong> entre Mato Grosso (421 por 100 mil) e
+        Maranhão (153 por 100 mil). O Centro-Oeste foi a região mais afetada (382 por 100 mil), seguido de Sudeste (354) e
+        Sul (343). Norte (267) e, sobretudo, Nordeste (223) ficaram abaixo da média nacional de 311.
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig4_ranking_uf.html" height="690" loading="lazy" title="Figura 4: ranking de mortalidade acumulada por UF"></iframe>
+        <figcaption>Figura 4: Mortalidade acumulada por UF até 27/03/2022, colorida por região. A linha pontilhada indica a média nacional. <a href="assets/fig4_ranking_uf.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <p>
+        A Figura 5 traz o achado mais importante da RQ2. Incidência e mortalidade têm correlação positiva entre as UFs
+        (ρ = 0,66; p &lt; 0,001), como esperado. Já incidência e letalidade têm <strong>correlação negativa forte
+        (ρ = −0,74; p &lt; 0,001)</strong>: estados que notificaram mais casos por habitante, como ES, SC, RR e DF, mostram
+        letalidade de 1,3% a 1,7%. Os que notificaram menos, como MA, PA, PE e AL, ficam acima de 2,3%. RJ (3,5%) e SP (3,2%)
+        combinam incidência baixa e letalidade alta. O padrão é coerente com <em>subtestagem</em>: quando só se testam casos
+        graves, o denominador encolhe e a letalidade aparente sobe. Por isso a <strong>mortalidade por habitante</strong>,
+        menos sensível à testagem, é o indicador mais robusto para comparar territórios.
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig5_incidencia_letalidade.html" height="530" loading="lazy" title="Figura 5: incidência versus letalidade por UF"></iframe>
+        <figcaption>Figura 5: Incidência acumulada × letalidade aparente por UF. O tamanho do círculo é proporcional à população. Spearman ρ = −0,74. <a href="assets/fig5_incidencia_letalidade.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <h3 class="sub">3.3 RQ3 — Porte populacional dos municípios</h3>
+      <p>
+        Com os 5.570 municípios medidos na mesma data de corte (22/08/2021), a mortalidade cresce de forma monotônica com o
+        porte (Figura 6). A mediana vai de <strong>174 por 100 mil</strong> nos municípios de até 20 mil habitantes a
+        <strong>317 por 100 mil</strong> nos de mais de 500 mil, e a diferença entre as faixas é estatisticamente
+        significativa (Kruskal-Wallis H = 297; p &lt; 10<sup>−60</sup>). As capitais tiveram mortalidade 38% maior que os
+        demais municípios (338 contra 244 por 100 mil). Cuiabá (542), Rio de Janeiro (466) e Porto Velho (464) lideram.
+      </p>
+
+      <figure>
+        <iframe class="chart-frame" src="assets/fig6_porte_municipios.html" height="530" loading="lazy" title="Figura 6: mortalidade por porte populacional dos municípios"></iframe>
+        <figcaption>Figura 6: Distribuição da mortalidade municipal por faixa de porte (boxplots, com outliers pela regra de Tukey) e taxa agregada de cada faixa (losangos). <a href="assets/fig6_porte_municipios.png">Versão estática (PNG)</a>.</figcaption>
+      </figure>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Tabela 2: Indicadores por faixa de porte populacional (municípios, até 22/08/2021).</caption>
+          <thead><tr><th>Porte</th><th>Municípios</th><th>Mortalidade mediana</th><th>Mortalidade agregada</th><th>Incidência agregada</th><th>Letalidade agregada</th></tr></thead>
+          <tbody>
+            <tr><td>Até 20 mil</td><td>3.783</td><td>173,8</td><td>188,8</td><td>9.101</td><td>2,07%</td></tr>
+            <tr><td>20–50 mil</td><td>1.110</td><td>186,8</td><td>205,6</td><td>9.349</td><td>2,20%</td></tr>
+            <tr><td>50–100 mil</td><td>351</td><td>226,1</td><td>236,6</td><td>10.127</td><td>2,34%</td></tr>
+            <tr><td>100–500 mil</td><td>277</td><td>276,8</td><td>286,2</td><td>10.168</td><td>2,81%</td></tr>
+            <tr><td>Mais de 500 mil</td><td>49</td><td>316,8</td><td>328,2</td><td>9.053</td><td>3,63%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        A Tabela 2 mostra o que está por trás desse gradiente. A <strong>incidência quase não varia com o porte</strong>
+        (ρ = −0,01; p = 0,37), mas a <strong>letalidade aparente quase dobra</strong>, de 2,07% para 3,63%. O excesso de
+        mortalidade das grandes cidades, portanto, não vem de mais casos por habitante, e sim de mais óbitos por caso
+        notificado. Há hipóteses que não se excluem: estrutura etária mais velha e mais comorbidades nas metrópoles; óbitos de
+        moradores de cidades pequenas transferidos para hospitais de referência e registrados no município de atendimento;
+        e diferenças de testagem. A dispersão também cai com o porte: 57 dos 68 outliers estão em municípios de até 20 mil
+        habitantes, onde poucos óbitos já movem muito a taxa. Isso reforça que comparações entre municípios pequenos pedem
+        cautela. A associação contínua entre população e mortalidade é fraca (ρ = 0,13), então o porte é <em>um</em> dos
+        determinantes, não o principal.
+      </p>
+    </section>
+
+    <!-- 4. Conclusão -->
+    <section id="conclusao">
+      <h2>4. Conclusão</h2>
+      <p>
+        O estudo respondeu às três perguntas de pesquisa com um pipeline aberto e reprodutível. <strong>(RQ1)</strong> A
+        epidemia teve três ondas. A da variante Gama, no primeiro semestre de 2021, foi responsável por dois terços dos
+        óbitos. A da Ômicron teve o maior volume de casos e a menor letalidade, o que é compatível com o efeito protetor da
+        vacinação. <strong>(RQ2)</strong> A mortalidade variou quase três vezes entre UFs, com o Centro-Oeste mais afetado e
+        o Nordeste menos. A correlação negativa entre incidência e letalidade mostra que a letalidade aparente reflete a
+        capacidade de testagem de cada estado. <strong>(RQ3)</strong> Municípios maiores e capitais tiveram mortalidade
+        maior, explicada pela letalidade e não pela incidência.
+      </p>
+      <p>
+        <strong>Limitações.</strong> (i) Os casos confirmados dependem da testagem, por isso toda letalidade aqui é
+        <em>aparente</em>. (ii) As séries usam a data de notificação, não a de ocorrência, e represamentos geram artefatos
+        que a MM7 só atenua. (iii) O denominador populacional é fixo (2020). (iv) As séries municipais incompletas limitaram
+        a RQ3 a 22/08/2021, sem a onda Ômicron. (v) O desenho é ecológico e não permite inferência causal individual.
+      </p>
+      <p>
+        <strong>Trabalhos futuros.</strong> Cruzar os dados com o Sistema de Informação sobre Mortalidade (SIM) e o
+        SIVEP-Gripe, que registram óbitos por data de ocorrência e município de residência; padronizar as taxas por idade;
+        incorporar a cobertura vacinal municipal (OpenDataSUS) para estimar seu efeito sobre a letalidade; e usar modelos de
+        regressão espacial para separar os efeitos de porte, renda e acesso a leitos de UTI.
+      </p>
+    </section>
+
+    <!-- 5. FAIR Statement -->
+    <section id="fair">
+      <h2>5. Disponibilidade dos Dados e Declaração FAIR</h2>
+      <p>
+        Todo o código, os dados processados, o dicionário de variáveis e este artigo estão no repositório público
+        <a href="https://github.com/enzortorres/projeto_casos_covid">github.com/enzortorres/projeto_casos_covid</a>. Os
+        dados brutos (92 MB) não são versionados e são baixados automaticamente da fonte oficial pelo pipeline.
+      </p>
+      <div class="fair-box">
+        <h3>Declaração de Aderência FAIR</h3>
+        <ul>
+          <li><strong>Findable (Localizável):</strong> <code>README.md</code> com resumo executivo, palavras-chave padronizadas, identificação de autoria, disciplina e instituição, e link perene para a fonte (<code>https://brasil.io/dataset/covid19/caso_full/</code>).</li>
+          <li><strong>Accessible (Acessível):</strong> repositório público; ingestão via HTTPS sem autenticação nem credenciais; artigo publicado no GitHub Pages com layout responsivo.</li>
+          <li><strong>Interoperable (Interoperável):</strong> dados processados em Apache Parquet e CSV.gz (UTF-8), com <code>data/data_dictionary.md</code> descrevendo nome, significado, tipo e formato de cada variável.</li>
+          <li><strong>Reusable (Reutilizável):</strong> licença MIT (código), CC BY 4.0 (texto e figuras) e CC BY-SA 4.0 (dados derivados, por exigência da licença <em>ShareAlike</em> da fonte); <code>requirements.txt</code> congelado via <code>pip freeze</code>; pipeline determinístico com relatório de qualidade.</li>
+        </ul>
+        <pre><code># Reproduzir integralmente o estudo
+git clone https://github.com/enzortorres/projeto_casos_covid.git
+cd projeto_casos_covid
+python -m venv .venv
+.venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.etl                 # baixa o bruto (92 MB) e gera data/processed/
+python -m src.viz                 # gera as figuras em docs/assets/</code></pre>
+      </div>
+    </section>
+
+    <!-- 6. Referências -->
+    <section id="referencias" class="references">
+      <h2>6. Referências</h2>
+      <ol>
+        <li>BRASIL.IO. <em>COVID-19: boletins epidemiológicos das Secretarias Estaduais de Saúde — tabela caso_full</em>. 2022. Disponível em: &lt;https://brasil.io/dataset/covid19/caso_full/&gt;. Acesso em: 16 nov. 2026.</li>
+        <li>FARIA, N. R. et al. Genomics and epidemiology of the P.1 SARS-CoV-2 lineage in Manaus, Brazil. <em>Science</em>, v. 372, n. 6544, p. 815-821, 2021.</li>
+        <li>HARRIS, C. R. et al. Array programming with NumPy. <em>Nature</em>, v. 585, p. 357-362, 2020.</li>
+        <li>HUNTER, J. D. Matplotlib: a 2D graphics environment. <em>Computing in Science &amp; Engineering</em>, v. 9, n. 3, p. 90-95, 2007.</li>
+        <li>IBGE — INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. <em>Estimativas da população residente no Brasil e unidades da federação com data de referência em 1º de julho de 2020</em>. Rio de Janeiro: IBGE, 2020.</li>
+        <li>MCKINNEY, W. <em>Python for Data Analysis</em>: data wrangling with pandas, NumPy, and Jupyter. 3. ed. Sebastopol: O'Reilly Media, 2022.</li>
+        <li>PLOTLY TECHNOLOGIES INC. <em>Collaborative data science</em>. Montreal, 2015. Disponível em: &lt;https://plot.ly&gt;.</li>
+        <li>VIRTANEN, P. et al. SciPy 1.0: fundamental algorithms for scientific computing in Python. <em>Nature Methods</em>, v. 17, p. 261-272, 2020.</li>
+        <li>WILKINSON, M. D. et al. The FAIR Guiding Principles for scientific data management and stewardship. <em>Scientific Data</em>, v. 3, n. 1, p. 1-9, 2016.</li>
+        <li>WORLD HEALTH ORGANIZATION. <em>Estimating mortality from COVID-19</em>: scientific brief. Geneva: WHO, 4 ago. 2020.</li>
+      </ol>
+    </section>
+  </div>
+
+  <footer>
+    Código sob licença <a href="https://github.com/enzortorres/projeto_casos_covid/blob/main/LICENSE">MIT</a> · Texto e figuras sob <a href="https://creativecommons.org/licenses/by/4.0/deed.pt-br">CC BY 4.0</a> · Dados: Brasil.IO (CC BY-SA 4.0)
+  </footer>
+</body>
+</html>

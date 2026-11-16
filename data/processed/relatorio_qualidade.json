@@ -1,0 +1,39 @@
+{
+  "fonte": "https://data.brasil.io/dataset/covid19/caso_full.csv.gz",
+  "linhas_brutas": 3853648,
+  "colunas": 18,
+  "periodo": [
+    "2020-02-25",
+    "2022-03-27"
+  ],
+  "linhas_por_tipo": {
+    "city": 3833529,
+    "state": 20119
+  },
+  "nulos_por_coluna": {
+    "city": 20119,
+    "city_ibge_code": 13646,
+    "estimated_population": 13646,
+    "estimated_population_2019": 13646,
+    "last_available_confirmed_per_100k_inhabitants": 29166
+  },
+  "linhas_repetidas_is_repeated": 1015645,
+  "linhas_importados_indefinidos": 13646,
+  "municipios_distintos": 5570,
+  "ufs_distintas": 27,
+  "new_confirmed_negativos": 38638,
+  "new_deaths_negativos": 6261,
+  "chaves_duplicadas_local_data": 0,
+  "totais_brasil": {
+    "data_referencia": "2022-03-27",
+    "casos_acumulados": 29849740,
+    "obitos_acumulados": 659159
+  },
+  "linhas_por_tabela": {
+    "brasil_diario": 762,
+    "uf_diario": 20119,
+    "uf_mensal": 676,
+    "uf_resumo": 27,
+    "municipios": 5570
+  }
+}
