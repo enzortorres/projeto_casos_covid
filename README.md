@@ -11,10 +11,10 @@
 | | |
 |---|---|
 | **Curso** | Bacharelado em Sistemas de Informação — 6º período |
-| **Instituição** | [Nome da Instituição] |
+| **Instituição** | Centro Universitário La Salle RJ |
 | **Disciplina** | Linguagem de Programação — Análise e Visualização de Dados com Python |
 | **Professor** | Alexandre Neves Louzada |
-| **Autor** | Enzo Ribas Torres |
+| **Autores** | Enzo Ribas Torres e Guilherme Ornellas Chagas |
 | **Semestre** | 2026.2 |
 | **Artigo (GitHub Pages)** | <https://enzortorres.github.io/projeto_casos_covid/> |
 | **Fonte dos dados** | [Brasil.IO — `caso_full`](https://brasil.io/dataset/covid19/caso_full/) |
@@ -141,7 +141,7 @@ população é a estimativa fixa de 2020. A análise municipal vai até 22/08/20
 
 ## Como citar
 
-> TORRES, Enzo Ribas. *COVID-19 no Brasil (2020–2022): análise exploratória com Python sob princípios FAIR*. 2026.
+> TORRES, Enzo Ribas; CHAGAS, Guilherme Ornellas. *COVID-19 no Brasil (2020–2022): análise exploratória com Python sob princípios FAIR*. 2026.
 > Disponível em: <https://github.com/enzortorres/projeto_casos_covid>.
 
 Fonte dos dados: BRASIL.IO. *COVID-19: boletins epidemiológicos das Secretarias Estaduais de Saúde*. Disponível em:
